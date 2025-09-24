@@ -72,7 +72,8 @@ function main() {
   // Diff-aware: restrict to changed files and lines if --diff
   let changed = null;
   if (args.diff) {
-    changed = getChangedLines();
+    const range = args.range || process.env.BIC_DIFF_RANGE || '';
+    changed = getChangedLines(range);
     const changedFiles = new Set(Object.keys(changed));
     files = files.filter(f => {
       const rel = toRepoRelPath(f, repoRoot);
@@ -209,10 +210,13 @@ function inAnyRange(line, ranges) {
   return false;
 }
 
-function getChangedLines() {
-  // Use git diff against HEAD with zero context to capture added/modified lines
+function getChangedLines(range) {
+  // Use git diff with optional range and zero context to capture added/modified lines
   try {
-    const out = cp.execSync('git diff --unified=0 --no-color', { encoding: 'utf8' });
+    const cmd = range && range.trim().length > 0
+      ? `git diff --unified=0 --no-color ${range}`
+      : 'git diff --unified=0 --no-color';
+    const out = cp.execSync(cmd, { encoding: 'utf8' });
     return parseUnifiedDiff(out);
   } catch (_) {
     return {};

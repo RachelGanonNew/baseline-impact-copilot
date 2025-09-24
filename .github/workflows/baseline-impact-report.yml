@@ -11,17 +11,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
       - name: Install
         run: npm ci || npm i
+      - name: Compute diff range
+        if: ${{ github.event_name == 'pull_request' }}
+        run: echo "BIC_DIFF_RANGE=${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}" >> $GITHUB_ENV
       - name: Run Baseline Impact Copilot (Markdown)
         run: |
-          node packages/cli/bin/bic.js scan . --format md --diff --fail-on error > baseline-impact.md || true
+          node packages/cli/bin/bic.js scan . --format md --diff --range "$BIC_DIFF_RANGE" --fail-on error > baseline-impact.md || true
       - name: Run Baseline Impact Copilot (SARIF)
         run: |
-          node packages/cli/bin/bic.js scan . --format sarif --diff --fail-on error --out baseline-impact.sarif || true
+          node packages/cli/bin/bic.js scan . --format sarif --diff --range "$BIC_DIFF_RANGE" --fail-on error --out baseline-impact.sarif || true
       - name: Upload SARIF to code scanning
         uses: github/codeql-action/upload-sarif@v3
         with:

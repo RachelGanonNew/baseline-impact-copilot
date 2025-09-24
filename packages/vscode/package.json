@@ -4,6 +4,15 @@
   "publisher": "your-name",
   "version": "0.1.0",
   "engines": { "vscode": "^1.74.0" },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/RachelGanonNew/baseline-impact-copilot"
+  },
+  "files": [
+    "extension.js",
+    "package.json",
+    "README.md"
+  ],
   "activationEvents": [
     "onStartupFinished",
     "onLanguage:javascript",
@@ -12,7 +21,9 @@
     "onLanguage:html"
   ],
   "main": "extension.js",
-  "categories": ["Linters"],
+  "categories": [
+    "Linters"
+  ],
   "contributes": {
     "configuration": {
       "title": "Baseline Impact Copilot",
@@ -22,6 +33,6 @@
     }
   },
   "dependencies": {
-    "@bic/core": "*"
+    "vsce": "^2.15.0"
   }
 }
