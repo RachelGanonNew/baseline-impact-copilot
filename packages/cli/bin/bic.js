@@ -45,8 +45,8 @@ function parseArgs(argv) {
 function main() {
   const args = parseArgs(process.argv);
   const cmd = args._[0];
-  if (cmd !== 'scan') {
-    console.error('Usage: bic scan <path> [--exts=.js,.ts,.css,.html] [--format=md|sarif] [--out=FILE]');
+  if (cmd !== 'scan' && cmd !== 'fix') {
+    console.error('Usage:\n  bic scan <path> [--exts=.js,.ts,.css,.html] [--format=md|sarif] [--out=FILE] [--diff] [--policy FILE] [--fail-on error|any|none]\n  bic fix  <path> [--exts=.js,.ts,.css,.html] [--dry-run] [--policy FILE]');
     process.exit(2);
   }
   const target = args._[1] || '.';
@@ -72,6 +72,17 @@ function main() {
   }
 
   let results = analyzeFilesSync(files, { policy });
+
+  if (cmd === 'fix') {
+    const plan = buildFixPlan(results);
+    if (args['dry-run']) {
+      printFixPlan(plan);
+      return;
+    }
+    applyFixPlan(plan);
+    console.log(`Applied fixes to ${Object.keys(plan).length} file(s).`);
+    return;
+  }
 
   if (args.diff && changed) {
     // Filter findings to only those on added/modified lines
@@ -152,4 +163,53 @@ function parseUnifiedDiff(text) {
     }
   }
   return fileRanges;
+}
+
+function buildFixPlan(results) {
+  // Returns { filePath: [{ line: number, text: string }, ...] }
+  const plan = {};
+  for (const r of results) {
+    if (!r.findings.length) continue;
+    for (const f of r.findings) {
+      let text = null;
+      if (f.featureId === 'view-transitions') {
+        text = "if (document.startViewTransition) { /* TODO: move guarded call inside */ }";
+      } else if (f.featureId === 'css-has-selector') {
+        text = "/* Consider guarding styles with CSS.supports(':has(*)') */";
+      } else if (f.featureId === 'html-dialog') {
+        text = "<!-- Consider a dialog polyfill and feature-detect: 'if (window.HTMLDialogElement) { ... }' -->";
+      }
+      if (!text) continue;
+      (plan[r.filePath] = plan[r.filePath] || []).push({ line: f.line, text });
+    }
+  }
+  // Sort insertions per file by line asc to apply cleanly
+  for (const k of Object.keys(plan)) {
+    plan[k].sort((a, b) => a.line - b.line);
+  }
+  return plan;
+}
+
+function applyFixPlan(plan) {
+  for (const [file, edits] of Object.entries(plan)) {
+    let content = fs.readFileSync(file, 'utf8');
+    const lines = content.split(/\r?\n/);
+    let added = 0;
+    for (const e of edits) {
+      const idx = Math.max(e.line - 1 + added, 0);
+      lines.splice(idx, 0, e.text);
+      added += 1;
+    }
+    const out = lines.join('\n');
+    fs.writeFileSync(file, out, 'utf8');
+  }
+}
+
+function printFixPlan(plan) {
+  for (const [file, edits] of Object.entries(plan)) {
+    console.log(`\n# ${file}`);
+    for (const e of edits) {
+      console.log(`+ [line ${e.line}] ${e.text}`);
+    }
+  }
 }

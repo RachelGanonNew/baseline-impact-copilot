@@ -1,0 +1,6 @@
+body { font-family: system-ui, sans-serif; padding: 2rem; }
+
+/* Intentionally uses :has() to trigger diagnostics */
+.card:has(img) {
+  border: 1px solid #ccc;
+}
