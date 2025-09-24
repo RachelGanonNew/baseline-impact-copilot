@@ -1,0 +1,12 @@
+{
+  "name": "@bic/cli",
+  "version": "0.1.0",
+  "bin": {
+    "bic": "bin/bic.js"
+  },
+  "dependencies": {
+    "@bic/core": "*"
+  },
+  "type": "commonjs",
+  "license": "MIT"
+}

@@ -1,0 +1,10 @@
+{
+  "name": "@bic/core",
+  "version": "0.1.0",
+  "main": "index.js",
+  "type": "commonjs",
+  "license": "MIT",
+  "optionalDependencies": {
+    "web-features": "^3.1.0"
+  }
+}

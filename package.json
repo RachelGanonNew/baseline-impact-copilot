@@ -1,0 +1,14 @@
+{
+  "name": "baseline-impact-copilot",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "echo no build",
+    "scan": "node packages/cli/bin/bic.js scan .",
+    "test": "node packages/cli/bin/bic.js scan packages --format md"
+  }
+}

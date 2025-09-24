@@ -1,0 +1,27 @@
+{
+  "name": "baseline-impact-copilot-vscode",
+  "displayName": "Baseline Impact Copilot",
+  "publisher": "your-name",
+  "version": "0.1.0",
+  "engines": { "vscode": "^1.74.0" },
+  "activationEvents": [
+    "onStartupFinished",
+    "onLanguage:javascript",
+    "onLanguage:typescript",
+    "onLanguage:css",
+    "onLanguage:html"
+  ],
+  "main": "extension.js",
+  "categories": ["Linters"],
+  "contributes": {
+    "configuration": {
+      "title": "Baseline Impact Copilot",
+      "properties": {
+        "bic.enable": { "type": "boolean", "default": true, "description": "Enable diagnostics" }
+      }
+    }
+  },
+  "dependencies": {
+    "@bic/core": "*"
+  }
+}
