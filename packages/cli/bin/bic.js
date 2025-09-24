@@ -66,12 +66,18 @@ function main() {
   }
   policy = normalizePolicy(policy);
 
+  // Determine repo root for consistent relative paths
+  const repoRoot = getRepoRoot(process.cwd());
+
   // Diff-aware: restrict to changed files and lines if --diff
   let changed = null;
   if (args.diff) {
     changed = getChangedLines();
     const changedFiles = new Set(Object.keys(changed));
-    files = files.filter(f => changedFiles.has(normalizeGitPath(f)));
+    files = files.filter(f => {
+      const rel = toRepoRelPath(f, repoRoot);
+      return changedFiles.has(rel);
+    });
   }
 
   let results = analyzeFilesSync(files, { policy });
@@ -96,7 +102,7 @@ function main() {
   if (args.diff && changed) {
     // Filter findings to only those on added/modified lines
     results = results.map(r => {
-      const key = normalizeGitPath(r.filePath);
+      const key = toRepoRelPath(r.filePath, repoRoot);
       const ranges = changed[key] || [];
       const kept = r.findings.filter(f => inAnyRange(f.line, ranges));
       return { ...r, findings: kept };
@@ -233,6 +239,22 @@ function parseUnifiedDiff(text) {
     }
   }
   return fileRanges;
+}
+
+function getRepoRoot(cwd) {
+  try {
+    const out = cp.execSync('git rev-parse --show-toplevel', { cwd, encoding: 'utf8' }).trim();
+    return normalizeGitPath(out);
+  } catch (_) {
+    return normalizeGitPath(cwd);
+  }
+}
+
+function toRepoRelPath(filePath, repoRoot) {
+  const norm = normalizeGitPath(filePath);
+  // Ensure trailing slash on root
+  const root = repoRoot.endsWith('/') ? repoRoot : repoRoot + '/';
+  return norm.startsWith(root) ? norm.slice(root.length) : norm;
 }
 
 function buildFixPlan(results) {
