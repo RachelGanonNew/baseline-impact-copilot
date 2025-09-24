@@ -22,14 +22,47 @@ npm install
 node packages/cli/bin/bic.js scan . --format md
 ```
 
-3) VS Code extension
+3) Diff-aware scan (only changed lines in git)
+
+```bash
+node packages/cli/bin/bic.js scan . --format md --diff
+```
+
+4) Apply policy and fail on errors
+
+```bash
+# baseline.config.json controls minBaselineYear and ignored features
+node packages/cli/bin/bic.js scan . --format sarif --fail-on error --out baseline-impact.sarif
+```
+
+5) VS Code extension
 
 - Open `baseline-impact-copilot/` in VS Code
 - Press F5 to launch the extension host and open a sample project
 
-4) GitHub Action
+6) GitHub Action
 
 See `.github/workflows/baseline-impact-report.yml` for a ready-to-copy workflow.
+
+## Fixes (codemods)
+
+Preview fixes without changing files:
+
+```bash
+node packages/cli/bin/bic.js fix . --dry-run
+```
+
+Apply simple guard/fallback inserts:
+
+```bash
+node packages/cli/bin/bic.js fix .
+```
+
+Currently implemented:
+
+- View Transitions: insert `if (document.startViewTransition) { ... }` guard hint.
+- CSS :has(): suggest `CSS.supports(':has(*)')` guard comment.
+- HTML <dialog>: suggest polyfill and feature-detect comment.
 
 ## Packages
 

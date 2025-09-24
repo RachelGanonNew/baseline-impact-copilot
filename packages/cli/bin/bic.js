@@ -3,6 +3,9 @@ const fs = require('fs');
 const path = require('path');
 const cp = require('child_process');
 const { analyzeFilesSync, toMarkdown, toSarif, normalizePolicy } = require('@bic/core');
+const recast = require('recast');
+const t = recast.types.namedTypes;
+const b = recast.types.builders;
 
 function walk(dir, exts, out = []) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -74,6 +77,12 @@ function main() {
   let results = analyzeFilesSync(files, { policy });
 
   if (cmd === 'fix') {
+    if (args.ast) {
+      const jsFiles = files.filter(f => /\.(js|jsx|ts|tsx)$/.test(f));
+      const count = applyAstTransforms(jsFiles);
+      console.log(`Applied AST transforms to ${count} file(s).`);
+      return;
+    }
     const plan = buildFixPlan(results);
     if (args['dry-run']) {
       printFixPlan(plan);
@@ -110,6 +119,52 @@ function main() {
   if ((failOn === 'any' && hasAny) || (failOn === 'error' && hasError)) {
     process.exit(1);
   }
+}
+
+function applyAstTransforms(files) {
+  let changed = 0;
+  for (const file of files) {
+    let src;
+    try { src = fs.readFileSync(file, 'utf8'); } catch { continue; }
+    let ast;
+    try { ast = recast.parse(src, { parser: require('recast/parsers/typescript') }); } catch { continue; }
+    let modified = false;
+    recast.types.visit(ast, {
+      visitCallExpression(path) {
+        const { node } = path;
+        // Match document.startViewTransition(<fn>)
+        if (
+          t.MemberExpression.check(node.callee) &&
+          t.Identifier.check(node.callee.object) && node.callee.object.name === 'document' &&
+          ((t.Identifier.check(node.callee.property) && node.callee.property.name === 'startViewTransition') ||
+           (t.Literal.check(node.callee.property) && node.callee.property.value === 'startViewTransition')) &&
+          node.arguments && node.arguments.length === 1 &&
+          (t.FunctionExpression.check(node.arguments[0]) || t.ArrowFunctionExpression.check(node.arguments[0]))
+        ) {
+          const cb = node.arguments[0];
+          // Build: document.startViewTransition ? document.startViewTransition(cb) : (cb())
+          const cond = b.conditionalExpression(
+            b.memberExpression(b.identifier('document'), b.identifier('startViewTransition')),
+            b.callExpression(
+              b.memberExpression(b.identifier('document'), b.identifier('startViewTransition')),
+              [cb]
+            ),
+            b.callExpression(cb, [])
+          );
+          path.replace(cond);
+          modified = true;
+          return false;
+        }
+        this.traverse(path);
+      }
+    });
+    if (modified) {
+      const out = recast.print(ast).code;
+      fs.writeFileSync(file, out, 'utf8');
+      changed++;
+    }
+  }
+  return changed;
 }
 
 if (require.main === module) main();
