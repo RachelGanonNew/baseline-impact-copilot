@@ -1,14 +1,10 @@
-// Intentionally uses View Transitions API to showcase a diagnostic
+// Intentionally uses unguarded View Transitions API to demonstrate codemod
 const btnOpen = document.getElementById('open');
 const btnClose = document.getElementById('close');
 const dlg = document.getElementById('dlg');
 
 btnOpen.addEventListener('click', () => {
-  if (document.startViewTransition) {
-    document.startViewTransition(() => dlg.showModal());
-  } else {
-    dlg.showModal();
-  }
+  document.startViewTransition(() => dlg.showModal());
 });
 
 btnClose.addEventListener('click', () => dlg.close());
