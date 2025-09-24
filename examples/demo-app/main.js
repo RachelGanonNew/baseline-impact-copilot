@@ -4,7 +4,9 @@ const btnClose = document.getElementById('close');
 const dlg = document.getElementById('dlg');
 
 btnOpen.addEventListener('click', () => {
-  document.startViewTransition(() => dlg.showModal());
+  (document.startViewTransition
+    ? document.startViewTransition(() => dlg.showModal())
+    : (() => dlg.showModal())());
 });
 
 btnClose.addEventListener('click', () => dlg.close());

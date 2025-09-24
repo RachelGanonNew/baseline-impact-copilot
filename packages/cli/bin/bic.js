@@ -139,9 +139,14 @@ function applyAstTransforms(files) {
           ((t.Identifier.check(node.callee.property) && node.callee.property.name === 'startViewTransition') ||
            (t.Literal.check(node.callee.property) && node.callee.property.value === 'startViewTransition')) &&
           node.arguments && node.arguments.length === 1 &&
-          (t.FunctionExpression.check(node.arguments[0]) || t.ArrowFunctionExpression.check(node.arguments[0]))
+          (t.FunctionExpression.check(node.arguments[0]) ||
+           t.ArrowFunctionExpression.check(node.arguments[0]) ||
+           (t.ParenthesizedExpression && t.ParenthesizedExpression.check(node.arguments[0]) &&
+             (t.FunctionExpression.check(node.arguments[0].expression) || t.ArrowFunctionExpression.check(node.arguments[0].expression))))
         ) {
-          const cb = node.arguments[0];
+          const cb = t.ParenthesizedExpression && t.ParenthesizedExpression.check(node.arguments[0])
+            ? node.arguments[0].expression
+            : node.arguments[0];
           // Build: document.startViewTransition ? document.startViewTransition(cb) : (cb())
           const cond = b.conditionalExpression(
             b.memberExpression(b.identifier('document'), b.identifier('startViewTransition')),
@@ -162,6 +167,16 @@ function applyAstTransforms(files) {
       const out = recast.print(ast).code;
       fs.writeFileSync(file, out, 'utf8');
       changed++;
+    } else {
+      // Fallback: regex-based transform for simple cases
+      const rx = /document\.startViewTransition\s*\(([^)]*)\)/g;
+      if (rx.test(src)) {
+        const out = src.replace(rx, '(document.startViewTransition ? document.startViewTransition($1) : ($1()))');
+        if (out !== src) {
+          fs.writeFileSync(file, out, 'utf8');
+          changed++;
+        }
+      }
     }
   }
   return changed;
