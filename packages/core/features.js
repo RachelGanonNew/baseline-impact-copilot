@@ -76,6 +76,16 @@ module.exports = [
   }
   ,
   {
+    id: "popover-api-js",
+    title: "Popover API (JS)",
+    type: "js",
+    pattern: /\.(showPopover|hidePopover)\s*\(/g,
+    mdn: "https://developer.mozilla.org/docs/Web/API/Popover_API",
+    fallback: "Guard with if (HTMLElement.prototype.showPopover) or provide headless UI fallback.",
+    baseline: "2023"
+  },
+  
+  {
     id: "css-nesting",
     title: "CSS Nesting",
     type: "css",

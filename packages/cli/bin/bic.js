@@ -49,7 +49,7 @@ function main() {
   const args = parseArgs(process.argv);
   const cmd = args._[0];
   if (cmd !== 'scan' && cmd !== 'fix') {
-    console.error('Usage:\n  bic scan <path> [--exts=.js,.ts,.css,.html] [--format=md|sarif] [--out=FILE] [--diff] [--policy FILE] [--fail-on error|any|none]\n  bic fix  <path> [--exts=.js,.ts,.css,.html] [--dry-run] [--policy FILE]');
+    console.error('Usage:\n  bic scan <path> [--exts=.js,.ts,.css,.html] [--format=md|sarif] [--out=FILE] [--diff] [--policy FILE] [--fail-on error|any|none]\n  bic fix  <path> [--exts=.js,.ts,.css,.html] [--dry-run] [--policy FILE] [--out-plan FILE] [--ast]');
     process.exit(2);
   }
   const target = args._[1] || '.';
@@ -92,7 +92,12 @@ function main() {
     }
     const plan = buildFixPlan(results);
     if (args['dry-run']) {
-      printFixPlan(plan);
+      const md = renderFixPlanMarkdown(plan);
+      if (args['out-plan']) {
+        fs.writeFileSync(args['out-plan'], md, 'utf8');
+      } else {
+        console.log(md);
+      }
       return;
     }
     applyFixPlan(plan);
@@ -274,6 +279,8 @@ function buildFixPlan(results) {
         text = "/* Consider guarding styles with CSS.supports(':has(*)') */";
       } else if (f.featureId === 'html-dialog') {
         text = "<!-- Consider a dialog polyfill and feature-detect: 'if (window.HTMLDialogElement) { ... }' -->";
+      } else if (f.featureId === 'popover-api-js') {
+        text = "// Consider guarding popover methods: if (HTMLElement.prototype.showPopover) { /* ... */ }";
       }
       if (!text) continue;
       (plan[r.filePath] = plan[r.filePath] || []).push({ line: f.line, text });
@@ -302,10 +309,23 @@ function applyFixPlan(plan) {
 }
 
 function printFixPlan(plan) {
-  for (const [file, edits] of Object.entries(plan)) {
-    console.log(`\n# ${file}`);
-    for (const e of edits) {
-      console.log(`+ [line ${e.line}] ${e.text}`);
+  console.log(renderFixPlanMarkdown(plan));
+}
+
+function renderFixPlanMarkdown(plan) {
+  const lines = ['# Fix Plan'];
+  const files = Object.keys(plan);
+  if (!files.length) {
+    lines.push('\nNo fixes suggested.');
+    return lines.join('\n');
+  }
+  for (const file of files) {
+    lines.push(`\n## ${file}`);
+    lines.push('Line | Insertion');
+    lines.push('---: | ---');
+    for (const e of plan[file]) {
+      lines.push(`${e.line} | ${e.text.replace(/\|/g, '\\|')}`);
     }
   }
+  return lines.join('\n');
 }

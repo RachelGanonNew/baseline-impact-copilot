@@ -1,5 +1,12 @@
 # Baseline Impact Copilot
 
+Baseline Impact Copilot integrates Baseline web feature data into your workflow (IDE, CLI, and PRs) to accelerate safe adoption of modern web features. It flags risky usage, links to MDN with guidance, enforces team policies, and even applies automated fixes (codemods).
+
+## Why Baseline
+- Baseline provides a common, vendor-backed understanding of when web features are broadly safe to use.
+- Developers waste time checking MDN/caniuse and guessing about production readiness. We bring those answers into the IDE, CI, and PR reviews.
+- Data sources: curated rules in `packages/core/features.js` and optional enrichment via the `web-features` dataset.
+
 Baseline Impact Copilot is a developer assistant that integrates Baseline web feature data into your workflow:
 
 - VS Code extension that highlights risky modern web features and suggests fallbacks
