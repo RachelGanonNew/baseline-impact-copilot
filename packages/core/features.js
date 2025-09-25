@@ -130,4 +130,23 @@ module.exports = [
     fallback: "Provide copy-to-clipboard fallback or custom share UI when not supported.",
     baseline: "2020"
   }
+  ,
+  {
+    id: "css-view-transitions-selectors",
+    title: "CSS View Transitions selectors",
+    type: "css",
+    pattern: /::view-transition\b|:active-view-transition\b|::view-transition-(group|old|new)\b/g,
+    mdn: "https://developer.mozilla.org/docs/Web/API/View_Transitions_API",
+    fallback: "Gate styles with feature detection and provide CSS animation fallbacks.",
+    baseline: "2024"
+  },
+  {
+    id: "urlpattern-usage",
+    title: "URLPattern (routes)",
+    type: "js",
+    pattern: /new\s+URLPattern\s*\(\s*\{[^}]*\}/g,
+    mdn: "https://developer.mozilla.org/docs/Web/API/URLPattern",
+    fallback: "Prefer library routing or guard with try/catch and regex fallback.",
+    baseline: "2023"
+  }
 ];

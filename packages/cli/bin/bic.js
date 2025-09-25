@@ -49,7 +49,7 @@ function main() {
   const args = parseArgs(process.argv);
   const cmd = args._[0];
   if (cmd !== 'scan' && cmd !== 'fix') {
-    console.error('Usage:\n  bic scan <path> [--exts=.js,.ts,.css,.html] [--format=md|sarif] [--out=FILE] [--diff] [--policy FILE] [--fail-on error|any|none]\n  bic fix  <path> [--exts=.js,.ts,.css,.html] [--dry-run] [--policy FILE] [--out-plan FILE] [--ast]');
+    console.error('Usage:\n  bic scan <path> [--exts=.js,.ts,.css,.html] [--format=md|sarif] [--out=FILE] [--diff] [--policy FILE] [--fail-on error|any|none]\n  bic fix  <path> [--exts=.js,.ts,.css,.html] [--dry-run] [--policy FILE] [--out-plan FILE] [--ast] [--emit-patch FILE]');
     process.exit(2);
   }
   const target = args._[1] || '.';
@@ -91,6 +91,28 @@ function main() {
       return;
     }
     const plan = buildFixPlan(results);
+    if (args['emit-patch']) {
+      const patchPath = args['emit-patch'];
+      const touchedFiles = Object.keys(plan);
+      const originals = new Map();
+      for (const f of touchedFiles) {
+        try { originals.set(f, fs.readFileSync(f, 'utf8')); } catch {}
+      }
+      // Apply, diff, write patch, then restore
+      applyFixPlan(plan);
+      try {
+        const diff = cp.execSync('git diff --no-color', { encoding: 'utf8' });
+        fs.writeFileSync(patchPath, diff, 'utf8');
+      } catch (_) {
+        // ignore
+      } finally {
+        for (const [f, content] of originals.entries()) {
+          fs.writeFileSync(f, content, 'utf8');
+        }
+      }
+      console.log(`Wrote unified diff patch to ${patchPath}`);
+      return;
+    }
     if (args['dry-run']) {
       const md = renderFixPlanMarkdown(plan);
       if (args['out-plan']) {
@@ -276,7 +298,7 @@ function buildFixPlan(results) {
       if (f.featureId === 'view-transitions') {
         text = "if (document.startViewTransition) { /* TODO: move guarded call inside */ }";
       } else if (f.featureId === 'css-has-selector') {
-        text = "/* Consider guarding styles with CSS.supports(':has(*)') */";
+        text = "@supports selector(:has(*)) { /* TODO: move styles relying on :has() into this block */ }";
       } else if (f.featureId === 'html-dialog') {
         text = "<!-- Consider a dialog polyfill and feature-detect: 'if (window.HTMLDialogElement) { ... }' -->";
       } else if (f.featureId === 'popover-api-js') {

@@ -1,0 +1,31 @@
+name: Export Presentation PDF
+on:
+  workflow_dispatch:
+  push:
+    branches: [ feature/demo-pr ]
+permissions:
+  contents: write
+jobs:
+  export-pdf:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install Puppeteer
+        run: npm install puppeteer
+      - name: Export deck to PDF
+        run: node scripts/export_deck.js
+      - name: Upload PDF artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: baseline-impact-copilot-deck
+          path: docs/presentation/deck.pdf
+      - name: Upload to release (if applicable)
+        if: ${{ github.event_name == 'release' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          files: docs/presentation/deck.pdf
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
