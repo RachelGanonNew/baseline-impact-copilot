@@ -45,3 +45,6 @@ See `.github/workflows/baseline-impact-report.yml` for a ready-to-copy workflow.
 ## License
 
 MIT
+
+
+Built with ❤️ for Baseline Hackthon 2025
