@@ -1,5 +1,64 @@
 const vscode = require('vscode');
-const { analyzeContent } = require('@bic/core');
+
+// Inline minimal analyzer to avoid external deps in VSIX
+const FEATURES = [
+  {
+    id: 'css-has-selector',
+    title: 'CSS :has() selector',
+    type: 'css',
+    pattern: /:\s*has\s*\(/g,
+    mdn: 'https://developer.mozilla.org/docs/Web/CSS/:has',
+    fallback: "Use DOM-based toggles or parent-state classes. Consider CSS.supports(':has(*)').",
+  },
+  {
+    id: 'html-dialog',
+    title: '<dialog> element',
+    type: 'html',
+    pattern: /<\s*dialog\b/gi,
+    mdn: 'https://developer.mozilla.org/docs/Web/HTML/Element/dialog',
+    fallback: 'Polyfill with accessible modal patterns; feature-detect HTMLDialogElement.',
+  },
+  {
+    id: 'view-transitions',
+    title: 'View Transitions API',
+    type: 'js',
+    pattern: /document\.startViewTransition\s*\(/g,
+    mdn: 'https://developer.mozilla.org/docs/Web/API/View_Transitions_API',
+    fallback: "Guard with if (document.startViewTransition) { ... } and provide CSS fallback.",
+  },
+  {
+    id: 'popover-api',
+    title: 'Popover API',
+    type: 'html',
+    pattern: /\bpopover\b(=|\s|>)/gi,
+    mdn: 'https://developer.mozilla.org/docs/Web/API/Popover_API',
+    fallback: 'Use headless UI popover patterns as fallback.',
+  }
+];
+
+function detectLanguage(filePath) {
+  const ext = (filePath.split('.').pop() || '').toLowerCase();
+  if (['css', 'scss', 'less'].includes(ext)) return 'css';
+  if (['html', 'htm', 'svelte', 'vue'].includes(ext)) return 'html';
+  return 'js';
+}
+
+function analyzeContent(filePath, text) {
+  const lang = detectLanguage(filePath);
+  const findings = [];
+  for (const f of FEATURES) {
+    if (f.type !== lang && !(lang === 'html' && f.type === 'css')) continue;
+    const regex = new RegExp(f.pattern);
+    let m;
+    while ((m = regex.exec(text)) !== null) {
+      const idx = m.index;
+      const before = text.slice(0, idx);
+      const line = before.split(/\r?\n/).length;
+      findings.push({ ...f, line });
+    }
+  }
+  return { language: lang, findings };
+}
 
 /** @param {vscode.ExtensionContext} context */
 function activate(context) {

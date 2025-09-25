@@ -75,18 +75,48 @@ function analyzeFilesSync(filePaths, options = {}) {
 function toMarkdown(results) {
   const lines = [];
   let total = 0;
+  const severityCounts = { error: 0, warning: 0 };
+  const featureCounts = new Map();
+  for (const r of results) {
+    for (const f of r.findings) {
+      total++;
+      if (f.severity === 'error') severityCounts.error++; else severityCounts.warning++;
+      featureCounts.set(f.title, (featureCounts.get(f.title) || 0) + 1);
+    }
+  }
+
   lines.push('# Baseline Impact Report');
+  if (total === 0) {
+    lines.push('\nNo potential Baseline risks found.');
+    return lines.join('\n');
+  }
+
+  // Top features summary
+  const top = Array.from(featureCounts.entries()).sort((a,b) => b[1]-a[1]).slice(0, 3);
+  lines.push(`\nTotal findings: ${total} (Errors: ${severityCounts.error}, Warnings: ${severityCounts.warning})`);
+  if (top.length) {
+    lines.push('Top risks: ' + top.map(([name, count]) => `${name} (${count})`).join(', '));
+  }
+
+  // Next steps guidance
+  lines.push('\n### Next steps');
+  lines.push('- Review findings in changed files (diff-aware).');
+  lines.push('- Consider policy in baseline.config.json (minBaselineYear, ignore).');
+  lines.push('- Try quick fixes: `bic fix . --dry-run` to preview inserts.');
+  lines.push('- Use AST codemods for View Transitions: `bic fix . --ast`');
+  lines.push('- Open MDN links for details and adopt playbook snippets if needed.');
+
   for (const r of results) {
     if (!r.findings.length) continue;
     lines.push(`\n## ${r.filePath}`);
     lines.push('Feature | Line | Guidance');
     lines.push('--- | ---: | ---');
     for (const f of r.findings) {
-      total++;
-      lines.push(`${f.title} | ${f.line} | [MDN](${f.mdn}) — ${f.fallback}`);
+      const playbook = playbookLink(f.featureId);
+      const pb = playbook ? ` [Playbook](${playbook})` : '';
+      lines.push(`${f.title} | ${f.line} | [MDN](${f.mdn}) — ${f.fallback}${pb}`);
     }
   }
-  if (total === 0) lines.push('\nNo potential Baseline risks found.');
   return lines.join('\n');
 }
 
@@ -129,3 +159,16 @@ function severityForFeature(feature, policy) {
 }
 
 module.exports = { analyzeContent, analyzeFilesSync, toMarkdown, toSarif, normalizePolicy };
+
+function playbookLink(featureId) {
+  switch (featureId) {
+    case 'view-transitions':
+      return 'docs/playbooks/view-transitions.md';
+    case 'html-dialog':
+      return 'docs/playbooks/dialog.md';
+    case 'css-has-selector':
+      return 'docs/playbooks/css-has.md';
+    default:
+      return null;
+  }
+}
