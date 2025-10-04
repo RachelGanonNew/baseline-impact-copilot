@@ -74,4 +74,79 @@ module.exports = [
     fallback: "Use headless UI patterns for popovers; gate by HTMLPopoverElement in window.",
     baseline: "2023"
   }
+  ,
+  {
+    id: "popover-api-js",
+    title: "Popover API (JS)",
+    type: "js",
+    pattern: /\.(showPopover|hidePopover)\s*\(/g,
+    mdn: "https://developer.mozilla.org/docs/Web/API/Popover_API",
+    fallback: "Guard with if (HTMLElement.prototype.showPopover) or provide headless UI fallback.",
+    baseline: "2023"
+  },
+  
+  {
+    id: "css-nesting",
+    title: "CSS Nesting",
+    type: "css",
+    pattern: /\n\s*&\s*[.#:\[]|@nest\b/g,
+    mdn: "https://developer.mozilla.org/docs/Web/CSS/CSS_nesting",
+    fallback: "Use PostCSS nesting plugin or flatten selectors for unsupported targets.",
+    baseline: "2024"
+  },
+  {
+    id: "url-can-parse",
+    title: "URL.canParse",
+    type: "js",
+    pattern: /URL\s*\.\s*canParse\s*\(/g,
+    mdn: "https://developer.mozilla.org/docs/Web/API/URL/canParse_static",
+    fallback: "Fallback to try/catch around new URL() or regex validation.",
+    baseline: "2023"
+  },
+  {
+    id: "fs-access-api",
+    title: "File System Access API",
+    type: "js",
+    pattern: /show(Save|Open)FilePicker\s*\(|FileSystem(File|Directory)Handle\b/g,
+    mdn: "https://developer.mozilla.org/docs/Web/API/File_System_Access_API",
+    fallback: "Fallback to <input type=file> uploads and server-side storage.",
+    baseline: "2022"
+  },
+  {
+    id: "intl-duration-format",
+    title: "Intl.DurationFormat",
+    type: "js",
+    pattern: /Intl\s*\.\s*DurationFormat\b/g,
+    mdn: "https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Intl/DurationFormat",
+    fallback: "Fallback to custom formatting utilities when unavailable.",
+    baseline: "2024"
+  },
+  {
+    id: "web-share",
+    title: "Web Share API",
+    type: "js",
+    pattern: /navigator\s*\.\s*share\s*\(/g,
+    mdn: "https://developer.mozilla.org/docs/Web/API/Navigator/share",
+    fallback: "Provide copy-to-clipboard fallback or custom share UI when not supported.",
+    baseline: "2020"
+  }
+  ,
+  {
+    id: "css-view-transitions-selectors",
+    title: "CSS View Transitions selectors",
+    type: "css",
+    pattern: /::view-transition\b|:active-view-transition\b|::view-transition-(group|old|new)\b/g,
+    mdn: "https://developer.mozilla.org/docs/Web/API/View_Transitions_API",
+    fallback: "Gate styles with feature detection and provide CSS animation fallbacks.",
+    baseline: "2024"
+  },
+  {
+    id: "urlpattern-usage",
+    title: "URLPattern (routes)",
+    type: "js",
+    pattern: /new\s+URLPattern\s*\(\s*\{[^}]*\}/g,
+    mdn: "https://developer.mozilla.org/docs/Web/API/URLPattern",
+    fallback: "Prefer library routing or guard with try/catch and regex fallback.",
+    baseline: "2023"
+  }
 ];

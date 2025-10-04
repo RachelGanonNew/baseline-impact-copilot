@@ -1,9 +1,23 @@
 {
   "name": "baseline-impact-copilot-vscode",
   "displayName": "Baseline Impact Copilot",
-  "publisher": "your-name",
+  "description": "Helps identify potential web compatibility issues based on baseline standards",
+  "publisher": "rachelganon",
   "version": "0.1.0",
-  "engines": { "vscode": "^1.74.0" },
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/RachelGanonNew/baseline-impact-copilot"
+  },
+  "license": "MIT",
+  "files": [
+    "extension.js",
+    "README.md",
+    "LICENSE",
+    "extension/images/icon.png"
+  ],
   "activationEvents": [
     "onStartupFinished",
     "onLanguage:javascript",
@@ -11,17 +25,40 @@
     "onLanguage:css",
     "onLanguage:html"
   ],
-  "main": "extension.js",
-  "categories": ["Linters"],
+  "main": "./extension.js",
+  "categories": [
+    "Linters"
+  ],
+  "keywords": [
+    "baseline",
+    "compatibility",
+    "web",
+    "linter"
+  ],
   "contributes": {
     "configuration": {
       "title": "Baseline Impact Copilot",
       "properties": {
-        "bic.enable": { "type": "boolean", "default": true, "description": "Enable diagnostics" }
+        "bic.enable": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable diagnostics"
+        }
       }
     }
   },
-  "dependencies": {
-    "@bic/core": "*"
+  "scripts": {
+    "vscode:prepublish": "echo 'Preparing...'",
+    "package": "npx vsce package",
+    "publish": "npx vsce publish"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.74.0",
+    "vsce": "^2.15.0"
+  },
+  "vsce": {
+    "useYarn": false,
+    "dontBundle": true,
+    "prepublishOnly": "echo 'Preparing...'"
   }
 }

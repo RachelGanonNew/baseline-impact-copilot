@@ -1,0 +1,27 @@
+name: Release VSIX
+on:
+  release:
+    types: [created]
+permissions:
+  contents: write
+jobs:
+  build-and-upload:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install dependencies
+        run: npm ci || npm i
+      - name: Install vsce
+        run: npm install -g vsce
+      - name: Package VSIX
+        working-directory: packages/vscode
+        run: vsce package -o baseline-impact-copilot.vsix
+      - name: Upload VSIX as release asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: packages/vscode/baseline-impact-copilot.vsix
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
