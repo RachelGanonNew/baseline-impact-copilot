@@ -7,6 +7,10 @@ Baseline Impact Copilot integrates Baseline web feature data into your workflow 
 - Developers waste time checking MDN/caniuse and guessing about production readiness. We bring those answers into the IDE, CI, and PR reviews.
 - Data sources: curated rules in `packages/core/features.js` and optional enrichment via the `web-features` dataset.
 
+## Sources
+- `web-features` npm package (official Baseline dataset)
+- Web Platform Dashboard (Baseline status reference)
+
 Baseline Impact Copilot is a developer assistant that integrates Baseline web feature data into your workflow:
 
 - VS Code extension that highlights risky modern web features and suggests fallbacks
@@ -14,6 +18,10 @@ Baseline Impact Copilot is a developer assistant that integrates Baseline web fe
 - GitHub Action that posts a Baseline Impact Report on pull requests
 
 This monorepo uses plain JavaScript for fast iteration and zero build steps. It ships with a small built-in feature dataset and supports the official `web-features` dataset when available.
+
+## Presentation
+- Slides: `docs/presentation/deck.md` (Reveal.js at `docs/presentation/index.html`)
+- GitHub Pages (optional): set Pages source to `/docs` to serve the deck at `/presentation/`
 
 ## Quick start
 
