@@ -39,8 +39,11 @@ See `.github/workflows/baseline-impact-report.yml` for a ready-to-copy workflow.
 
 ## Judging alignment
 
-- Innovation: Diff-aware reports, actionable fallbacks, MDN links, and optional codemods (future work)
+- Innovation: Diff-aware reports, actionable fallbacks, MDN links, and optional codemods 
 - Usefulness: IDE diagnostics + CI reports + PR comments cover daily developer workflows
+
+## Demo 
+https://youtu.be/f7Jr-FxVMb0
 
 ## License
 
